@@ -6,48 +6,26 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card"
+import { celebrationSchema } from "@/lib/zod-schemas";
 
-
-
-const birthdayFormSchema = z.object({
-    name: z
-        .string({error: "Name must be a string"})
-        .min(2, { error: "Name must contain at least 2 characters." })
-        .max(50, { error: "Name must be less than 50 characters" })
-        .regex(/^[a-zA-Z]+$/, { error: "Name must contain only alphabets."}),
-    birthday: z
-        .string()
-        .refine((val) => !isNaN(Date.parse(val)), { error: "Invalid date format" })
-        .transform((val) => new Date(val))
-        .refine((date) => date > new Date(), { error: "Birthday must be after today" }),
-    age: z
-        .coerce.number()
-        .refine((num) => num > 0, { error: "Age must be positive"})
-        .refine((num) => num <= 999, { error: "Celebrant's age must not be more than 3 digits" }),
-    email: z
-        .email({ error: "Invalid email address" })
-        .optional(),
-    password: z.string()
-        .min(8, { error:"Site password must be at least 8 characters" })
-        .max(20, )
-        .optional(),
-});
-
-type BirthdayFormInput = z.input<typeof birthdayFormSchema>;
-type BirthdayFormOutput = z.output<typeof birthdayFormSchema>;
+type BirthdayFormInput = z.input<typeof celebrationSchema>;
+type BirthdayFormOutput = z.output<typeof celebrationSchema>;
 
 export default function CreateSiteForm() {
+    // --- init form with validation ---
     const { 
         register, 
         handleSubmit, 
         formState: { errors, isSubmitting }
         } = useForm<BirthdayFormInput, unknown, BirthdayFormOutput>({
-            resolver: zodResolver(birthdayFormSchema),
+            resolver: zodResolver(celebrationSchema),
             mode: "onChange"
         })
     
+    // --- submit handler to create celebration ---
     const createCelebration: SubmitHandler<BirthdayFormOutput> = async (data) => {
-        await fetch("/api/celebrations/route", {
+        // Sends form data to API endpoint
+        await fetch("/api/celebrations", {
             method: "POST",
             headers:  {
                 "Content-Type": "application/json"
@@ -56,15 +34,18 @@ export default function CreateSiteForm() {
         })
     }
     
+    // --- render form ---
     return(
         <Card 
             className="w-80 h-fit min-h-fit p-5 bg-background backdrop-blur-md rounded-xl gap-5" 
-            >        
+            >   
+            <h1>Fields with &apos;*&apos; are compulsory</h1>     
             <form 
                 onSubmit={handleSubmit(createCelebration)}
                 >
+                {/* --- name field --- */}
                 <div className="flex flex-col bg-transparent border-0 gap-1">
-                    <Label htmlFor="name">Name of Celebrant</Label>
+                    <Label htmlFor="name">Name of Celebrant *</Label>
                     <Input 
                         {...register("name")}
                         type="text"
@@ -78,8 +59,9 @@ export default function CreateSiteForm() {
                         }
                 </div>
 
+                {/* --- birthday field --- */}
                 <div className="flex flex-col bg-transparent border-0 mt-5 gap-1">
-                    <Label htmlFor="birthday">Celebrant&apos;s Birthday</Label>
+                    <Label htmlFor="birthday">Celebrant&apos;s Birthday *</Label>
                     <Input 
                         {...register("birthday")}
                         type="date"
@@ -92,23 +74,8 @@ export default function CreateSiteForm() {
                         </div>
                         }
                 </div>
-
-                <div className="flex flex-col bg-transparent border-0 mt-5 gap-1">
-                    <Label htmlFor="age">How old is the celebrant becoming?</Label>
-                    <Input 
-                        {...register("age")}
-                        type="number"
-                        min={0}
-                        placeholder="16"
-                        required
-                        />
-                    {errors.age && 
-                        <div className="w-full h-fit text-destructive">
-                            {errors.age.message}
-                        </div>
-                        }
-                </div>
                     
+                {/* --- email field --- */}
                 <div className="flex flex-col bg-transparent border-0 mt-5 gap-1">
                     <Label htmlFor="email">Celebrant&apos;s Email</Label>
                     <Input 
@@ -124,6 +91,7 @@ export default function CreateSiteForm() {
                         }
                 </div>
 
+                {/* --- password field --- */}
                 <div className="flex flex-col bg-transparent border-0 mt-5 gap-1">
                     <Label htmlFor="password">Special Access Password</Label>
                     <Input 
@@ -137,10 +105,13 @@ export default function CreateSiteForm() {
                         </div>
                         }
                 </div>
-                {/*Submit Button that changes based on state*/}
+
+                {/* --- submit button changes based on form state --- */}
                 <Button disabled={isSubmitting} type="submit" className="mt-5 w-full">
                     {isSubmitting? "Creating Your Form...": "Create Form"}
                 </Button>
+
+                {/* --- display root errors if any --- */}
                 {errors.root && 
                     <div className="w-full h-fit text-destructive">
                         {errors.root.message}

@@ -6,53 +6,56 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { getCelebrationSchema } from "@/lib/zod-schemas"
 
-const getSiteFormSchema = z.object({
-  code: z
-    .string() 
-    .length(10,{ error: "Site Code must be 10 characters long." }),
-  password: z
-    .string({ error: "Password must be a string."})
-    .min(8, { error: "Password must be at least 8 characters long." })
-    .max(20, { error: "Password must not be longer than 20 characters."})
-})
-
-type siteNanoIDFormInput = z.input<typeof getSiteFormSchema>
-type siteNanoIDFormOutput = z.output<typeof getSiteFormSchema>
+type siteNanoIDFormInput = z.input<typeof getCelebrationSchema>
+type siteNanoIDFormOutput = z.output<typeof getCelebrationSchema>
 
 export default function SiteNanoIDForm() {
-
+  // --- init form with validation ---
   const {
     register, 
     handleSubmit, 
-    formState: {errors, isSubmitting}
+    formState: {errors, isSubmitting, isSubmitSuccessful}
     } = useForm<siteNanoIDFormInput, unknown, siteNanoIDFormOutput>({
-        resolver: zodResolver(getSiteFormSchema)
+        resolver: zodResolver(getCelebrationSchema)
     })
 
+  // --- submit handler to access site ---
   const getSite: SubmitHandler<siteNanoIDFormOutput> = async (data) => {
-    console.log(data)
+    // Sends form to API endpoint
+    await fetch ("api/celebrations/unlock", {
+        method: "POST",
+        headers: {
+            "Content-Type" : "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    
   }
+  // --- render form ---
   return (
     <>        
         <Card
             className="w-80 h-fit min-h-fit p-5 bg-background backdrop-blur-md rounded-xl gap-5" >
             <form onSubmit={handleSubmit(getSite)}>
+                {/* --- site code field --- */}
                 <div className="flex flex-col bg-transparent border-0 gap-1">
                     <Label htmlFor="code">Unique Site Code</Label>
                     <Input 
-                        {...register("code")}
+                        {...register("site_slug")}
                         type="text"
                         placeholder="eg. er35ui78w4"
                         required
                     />
-                    {errors.code && 
+                    {errors.site_slug && 
                         <div className="w-full h-fit text-destructive">
-                            {errors.code.message}
+                            {errors.site_slug.message}
                         </div>
                     }
                 </div>
 
+                {/* --- password field --- */}
                 <div className="flex flex-col bg-transparent border-0 mt-5 gap-1">
                     <Label htmlFor="password">Site Password</Label>
                     <Input 
@@ -66,10 +69,17 @@ export default function SiteNanoIDForm() {
                         </div>
                     }
                 </div>
-                {/*Submit Button that changes based on state*/}
-                <Button disabled={isSubmitting} type="submit" className="mt-5 w-full">
+
+                {/* --- submit button changes based on form state --- */}
+                <Button 
+                    disabled={isSubmitting} 
+                    type="submit" 
+                    className="mt-5 w-full"
+                    href={isSubmitSuccessful? "/" : ""}>
                     {isSubmitting? "Getting Your Special Site...": "Access Site"}
                 </Button>
+
+                {/* --- display root errors if any --- */}
                 {errors.root && 
                     <div className="w-full h-fit text-destructive">
                         {errors.root.message}

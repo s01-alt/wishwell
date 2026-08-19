@@ -55,6 +55,7 @@ function InputGroupAddon({
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
       onClick={(e) => {
+        // --- focus input if click is not on a button ---
         if ((e.target as HTMLElement).closest("button")) {
           return
         }

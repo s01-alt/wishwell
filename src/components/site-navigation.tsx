@@ -20,7 +20,7 @@ export default function SiteNavigation({pages}: NavProps) {
 
     return (
         <>
-        {/*Desktop Navigation*/}
+        {/* --- desktop navigation (lg and up) --- */}
         <nav className="hidden lg:flex lg:flex-row lg:gap-8">
             {pages.map((page) => (
                 <Link 
@@ -35,7 +35,8 @@ export default function SiteNavigation({pages}: NavProps) {
                 </Link>
             ))}
         </nav>
-        {/*Tablet Navigation*/}
+
+        {/* --- tablet navigation (md to lg) --- */}
         <nav className="hidden lg:hidden md:flex md:flex-row md:gap-4">
             {pages.map((page) => (
                 <Link 
@@ -50,7 +51,8 @@ export default function SiteNavigation({pages}: NavProps) {
                 </Link>
             ))}
         </nav>
-        {/*Mobile Phone Navigation*/}
+
+        {/* --- mobile phone navigation (below md) --- */}
         <div className="md:hidden flex flex-col bg-transparent z-10">
             <Sheet>
                 <SheetHeader>
